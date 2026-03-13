@@ -1,0 +1,28 @@
+import SectionHeading from "./SectionHeading";
+
+export default function AboutSection({ text }) {
+  const paragraphs = text.split("\n\n");
+
+  return (
+    <section className="scroll-mt-24" data-section="about">
+      <SectionHeading id="about" title="About" />
+      <div className="section-shell max-w-[46rem] px-4 py-3.5 sm:px-5">
+        <div className="space-y-2.5">
+          {paragraphs.map((paragraph, index) => (
+            <p
+              key={paragraph}
+              className={
+                index === 0
+                  ? "max-w-[46rem] text-[0.98rem] leading-[1.65] text-[var(--color-text-primary)] sm:text-base"
+                  : "section-copy max-w-[46rem]"
+              }
+            >
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
