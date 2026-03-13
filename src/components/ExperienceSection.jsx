@@ -1,4 +1,4 @@
-import { Icon } from "./Icons";
+﻿import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
 
 export default function ExperienceSection({ items }) {
@@ -43,7 +43,7 @@ export default function ExperienceSection({ items }) {
             return (
               <a
                 key={`${item.title}-${item.company}`}
-                className="group block max-w-none rounded-[1.25rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(131,255,195,0.22)] focus-visible:ring-offset-0"
+                className="group block max-w-none rounded-[1.25rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(131,197,153,0.2)] focus-visible:ring-offset-0"
                 href={item.href}
                 rel="noopener noreferrer"
                 target="_blank"
@@ -63,4 +63,6 @@ export default function ExperienceSection({ items }) {
     </section>
   );
 }
+
+
 

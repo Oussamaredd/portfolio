@@ -1,8 +1,33 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const randomBetween = (min, max) => min + Math.random() * (max - min);
 const mixChannel = (from, to, amount) => Math.round(from + (to - from) * amount);
+const LINK_NEIGHBOR_OFFSETS = [
+  [0, 0],
+  [-1, 0],
+  [0, -1],
+  [-1, -1],
+  [1, -1],
+];
+
+const getPerformanceProfile = (viewportWidth, viewportHeight, coarsePointer) => {
+  const deviceMemory = navigator.deviceMemory ?? 8;
+  const hardwareConcurrency = navigator.hardwareConcurrency ?? 8;
+  const prefersSaveData = navigator.connection?.saveData === true;
+  const compactViewport = viewportWidth < 768 || viewportHeight < 720;
+  const lowPowerDevice = prefersSaveData || hardwareConcurrency <= 4 || deviceMemory <= 4;
+  const lighterProfile = coarsePointer || compactViewport || lowPowerDevice;
+
+  return {
+    enableTrails: !lighterProfile || viewportWidth >= 1024,
+    interactionFps: lighterProfile ? 28 : 42,
+    maxDpr: lighterProfile ? 1.35 : 1.8,
+    maxFps: lighterProfile ? 42 : 60,
+    particleMultiplier: lighterProfile ? 0.72 : 1,
+    dustMultiplier: lighterProfile ? 0.66 : 1,
+  };
+};
 
 const createParticle = (width, height) => {
   const tone = Math.round(randomBetween(220, 255));
@@ -63,12 +88,21 @@ export default function CyberBackground() {
     }
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
     let reduceMotion = motionQuery.matches;
     let animationFrame = 0;
+    let resizeFrame = 0;
+    let lastFrameTime = 0;
+    let interactionBoostUntil = 0;
     let width = 0;
     let height = 0;
     let particles = [];
     let dustStars = [];
+    let performanceProfile = getPerformanceProfile(
+      window.innerWidth,
+      window.innerHeight,
+      coarsePointerQuery.matches,
+    );
     const pointer = {
       x: 0,
       y: 0,
@@ -82,6 +116,11 @@ export default function CyberBackground() {
       effectRadius: 176,
       glowRadius: 500,
       ringRadius: 52,
+    };
+
+    const markInteraction = () => {
+      interactionBoostUntil = performance.now() + 180;
+      queueFrame();
     };
 
     const getLanternInfluence = (x, y) => {
@@ -120,7 +159,8 @@ export default function CyberBackground() {
     };
 
     const drawDustStars = (time) => {
-      dustStars.forEach((star) => {
+      for (let index = 0; index < dustStars.length; index += 1) {
+        const star = dustStars[index];
         const lanternInfluence = getLanternInfluence(star.x, star.y);
         const pulse = reduceMotion
           ? 0.5
@@ -132,7 +172,7 @@ export default function CyberBackground() {
         context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
         context.arc(star.x, star.y, star.size, 0, Math.PI * 2);
         context.fill();
-      });
+      }
     };
 
     const drawLantern = () => {
@@ -172,14 +212,19 @@ export default function CyberBackground() {
     };
 
     const drawTrails = () => {
+      if (!performanceProfile.enableTrails) {
+        return;
+      }
+
       context.lineCap = "round";
 
-      particles.forEach((particle) => {
+      for (let index = 0; index < particles.length; index += 1) {
+        const particle = particles[index];
         const travel = Math.hypot(particle.x - particle.prevX, particle.y - particle.prevY);
         const trailStrength = clamp(particle.disturbance * 0.78 + travel * 0.22, 0, 1.15);
 
         if (trailStrength < 0.08) {
-          return;
+          continue;
         }
 
         const lanternInfluence = getLanternInfluence(
@@ -194,7 +239,63 @@ export default function CyberBackground() {
         context.moveTo(particle.prevX, particle.prevY);
         context.lineTo(particle.x, particle.y);
         context.stroke();
-      });
+      }
+    };
+
+    const drawLinks = (linkDistance) => {
+      const cellSize = linkDistance;
+      const particleGrid = new Map();
+
+      context.lineCap = "round";
+
+      for (let index = 0; index < particles.length; index += 1) {
+        const particle = particles[index];
+        const cellX = Math.floor(particle.x / cellSize);
+        const cellY = Math.floor(particle.y / cellSize);
+
+        for (let offsetIndex = 0; offsetIndex < LINK_NEIGHBOR_OFFSETS.length; offsetIndex += 1) {
+          const offset = LINK_NEIGHBOR_OFFSETS[offsetIndex];
+          const key = `${cellX + offset[0]}:${cellY + offset[1]}`;
+          const nearbyParticles = particleGrid.get(key);
+
+          if (!nearbyParticles) {
+            continue;
+          }
+
+          for (let nearbyIndex = 0; nearbyIndex < nearbyParticles.length; nearbyIndex += 1) {
+            const other = particles[nearbyParticles[nearbyIndex]];
+            const dx = other.x - particle.x;
+            const dy = other.y - particle.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (distance > linkDistance) {
+              continue;
+            }
+
+            const strength = 1 - distance / linkDistance;
+            const midpointX = (particle.x + other.x) / 2;
+            const midpointY = (particle.y + other.y) / 2;
+            const lanternInfluence = getLanternInfluence(midpointX, midpointY);
+            const linkColor = getLinkColor(lanternInfluence);
+
+            context.beginPath();
+            context.strokeStyle = `rgba(${linkColor.r}, ${linkColor.g}, ${linkColor.b}, ${strength * 0.11 + lanternInfluence * 0.32})`;
+            context.lineWidth = strength > 0.66 ? 1 : 0.78;
+            context.moveTo(particle.x, particle.y);
+            context.lineTo(other.x, other.y);
+            context.stroke();
+          }
+        }
+
+        const gridKey = `${cellX}:${cellY}`;
+        const bucket = particleGrid.get(gridKey);
+
+        if (bucket) {
+          bucket.push(index);
+        } else {
+          particleGrid.set(gridKey, [index]);
+        }
+      }
     };
 
     const draw = (time) => {
@@ -219,7 +320,8 @@ export default function CyberBackground() {
       drawDustStars(time);
       drawLantern();
 
-      particles.forEach((particle) => {
+      for (let index = 0; index < particles.length; index += 1) {
+        const particle = particles[index];
         particle.prevX = particle.x;
         particle.prevY = particle.y;
 
@@ -284,40 +386,13 @@ export default function CyberBackground() {
           particle.x = clamp(particle.x, -12, width + 12);
           particle.y = clamp(particle.y, -12, height + 12);
         }
-      });
-
-      drawTrails();
-
-      context.lineCap = "round";
-      for (let index = 0; index < particles.length; index += 1) {
-        const particle = particles[index];
-
-        for (let next = index + 1; next < particles.length; next += 1) {
-          const other = particles[next];
-          const dx = other.x - particle.x;
-          const dy = other.y - particle.y;
-          const distance = Math.hypot(dx, dy);
-
-          if (distance > linkDistance) {
-            continue;
-          }
-
-          const strength = 1 - distance / linkDistance;
-          const midpointX = (particle.x + other.x) / 2;
-          const midpointY = (particle.y + other.y) / 2;
-          const lanternInfluence = getLanternInfluence(midpointX, midpointY);
-          const linkColor = getLinkColor(lanternInfluence);
-
-          context.beginPath();
-          context.strokeStyle = `rgba(${linkColor.r}, ${linkColor.g}, ${linkColor.b}, ${strength * 0.11 + lanternInfluence * 0.32})`;
-          context.lineWidth = strength > 0.66 ? 1 : 0.78;
-          context.moveTo(particle.x, particle.y);
-          context.lineTo(other.x, other.y);
-          context.stroke();
-        }
       }
 
-      particles.forEach((particle) => {
+      drawTrails();
+      drawLinks(linkDistance);
+
+      for (let index = 0; index < particles.length; index += 1) {
+        const particle = particles[index];
         const lanternInfluence = getLanternInfluence(particle.x, particle.y);
         const pulse = reduceMotion
           ? 0.5
@@ -338,17 +413,31 @@ export default function CyberBackground() {
         context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
         context.arc(particle.x, particle.y, radius, 0, Math.PI * 2);
         context.fill();
-      });
+      }
     };
 
     const queueFrame = () => {
-      if (animationFrame) {
+      if (animationFrame || document.hidden) {
         return;
       }
 
       animationFrame = window.requestAnimationFrame((time) => {
         animationFrame = 0;
-        draw(time);
+
+        const targetFps =
+          time < interactionBoostUntil
+            ? performanceProfile.interactionFps
+            : performanceProfile.maxFps;
+        const frameInterval = 1000 / targetFps;
+
+        if (
+          reduceMotion ||
+          lastFrameTime === 0 ||
+          time - lastFrameTime >= frameInterval - 1
+        ) {
+          lastFrameTime = time;
+          draw(time);
+        }
 
         if (!reduceMotion) {
           queueFrame();
@@ -360,17 +449,22 @@ export default function CyberBackground() {
       const area = width * height;
       const particleDensity = width < 768 ? 11600 : 9000;
       const dustDensity = width < 768 ? 5600 : 4400;
-      const particleCount = Math.round(clamp(area / particleDensity, 58, 190));
-      const dustCount = Math.round(clamp(area / dustDensity, 180, 360));
+      const particleCount = Math.round(
+        clamp((area / particleDensity) * performanceProfile.particleMultiplier, 48, 190),
+      );
+      const dustCount = Math.round(
+        clamp((area / dustDensity) * performanceProfile.dustMultiplier, 120, 360),
+      );
 
       particles = Array.from({ length: particleCount }, () => createParticle(width, height));
       dustStars = Array.from({ length: dustCount }, () => createDustStar(width, height));
     };
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.8);
       width = window.innerWidth;
       height = window.innerHeight;
+      performanceProfile = getPerformanceProfile(width, height, coarsePointerQuery.matches);
+      const dpr = Math.min(window.devicePixelRatio || 1, performanceProfile.maxDpr);
       pointer.glowRadius = width < 768 ? 340 : 500;
       pointer.ringRadius = width < 768 ? 34 : 52;
       pointer.effectRadius = pointer.ringRadius * 3.4;
@@ -383,8 +477,20 @@ export default function CyberBackground() {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      lastFrameTime = 0;
       resetStarfield();
       queueFrame();
+    };
+
+    const queueResize = () => {
+      if (resizeFrame) {
+        return;
+      }
+
+      resizeFrame = window.requestAnimationFrame(() => {
+        resizeFrame = 0;
+        resize();
+      });
     };
 
     const handlePointerMove = (event) => {
@@ -416,6 +522,7 @@ export default function CyberBackground() {
       pointer.pushX = 0;
       pointer.pushY = 0;
       pointer.speed = 0;
+      lastFrameTime = 0;
 
       if (!reduceMotion) {
         queueFrame();
@@ -430,9 +537,26 @@ export default function CyberBackground() {
       queueFrame();
     };
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (animationFrame) {
+          window.cancelAnimationFrame(animationFrame);
+          animationFrame = 0;
+        }
+
+        return;
+      }
+
+      lastFrameTime = 0;
+      queueFrame();
+    };
+
     resize();
     motionQuery.addEventListener("change", handleMotionChange);
-    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("resize", queueResize);
+    window.addEventListener("scroll", markInteraction, { capture: true, passive: true });
+    window.addEventListener("wheel", markInteraction, { passive: true });
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerdown", handlePointerMove, { passive: true });
     window.addEventListener("pointerup", handlePointerLeave);
@@ -444,8 +568,15 @@ export default function CyberBackground() {
         window.cancelAnimationFrame(animationFrame);
       }
 
+      if (resizeFrame) {
+        window.cancelAnimationFrame(resizeFrame);
+      }
+
       motionQuery.removeEventListener("change", handleMotionChange);
-      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("resize", queueResize);
+      window.removeEventListener("scroll", markInteraction, true);
+      window.removeEventListener("wheel", markInteraction);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerdown", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerLeave);
@@ -463,4 +594,3 @@ export default function CyberBackground() {
     </div>
   );
 }
-

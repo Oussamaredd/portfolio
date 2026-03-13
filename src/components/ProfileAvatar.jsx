@@ -1,4 +1,4 @@
-const baseClasses =
+﻿const baseClasses =
   "relative overflow-hidden rounded-full border border-[rgba(121,232,255,0.18)] bg-[radial-gradient(circle_at_top,rgba(121,232,255,0.22),transparent_60%),linear-gradient(145deg,rgba(15,25,43,0.92),rgba(6,10,19,0.92))]";
 
 export default function ProfileAvatar({ className = "h-20 w-20", profile }) {
@@ -10,8 +10,11 @@ export default function ProfileAvatar({ className = "h-20 w-20", profile }) {
             alt={profile.imageAlt}
             className="h-full w-full object-cover object-[50%_18%]"
             decoding="async"
-            fetchpriority="high"
+            fetchPriority="high"
+            height="213"
+            loading="eager"
             src={profile.imageSrc}
+            width="320"
           />
           <div
             aria-hidden="true"
@@ -26,4 +29,3 @@ export default function ProfileAvatar({ className = "h-20 w-20", profile }) {
     </div>
   );
 }
-

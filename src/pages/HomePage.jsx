@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { memo, useEffect, useRef, useState } from "react";
 import AboutSection from "../components/AboutSection";
 import CyberBackground from "../components/CyberBackground";
 import DesktopSidebar from "../components/DesktopSidebar";
@@ -24,6 +24,11 @@ import {
   skills,
 } from "../data/siteContent";
 
+const DEFAULT_ACTIVE_SECTION = "#about";
+const DESKTOP_SECTION_OFFSET = 128;
+const DESKTOP_NAVIGATION_OFFSET = 28;
+const MOBILE_NAVIGATION_OFFSET = 88;
+
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const applyScrollDelta = (element, deltaY) => {
@@ -47,15 +52,32 @@ const applyScrollDelta = (element, deltaY) => {
   return deltaY - consumed;
 };
 
+const introText = aboutText.split("\n\n")[0];
+
+const PortfolioContent = memo(function PortfolioContent() {
+  return (
+    <>
+      <AboutSection text={aboutText} />
+      <ExperienceSection items={experiences} />
+      <ProjectsSection items={projects} />
+      <EducationSection items={educationItems} />
+      <SkillsSection items={skills} />
+      <GitHubSection config={githubActivity} />
+      <Footer resumeSource={resumeSource} />
+    </>
+  );
+});
+
 export default function HomePage() {
   const [isDesktop, setIsDesktop] = useState(() =>
     typeof window !== "undefined"
       ? window.matchMedia("(min-width: 1024px)").matches
       : false,
   );
-  const [activeSection, setActiveSection] = useState("#about");
+  const [activeSection, setActiveSection] = useState(DEFAULT_ACTIVE_SECTION);
   const mainRef = useRef(null);
   const sidebarRef = useRef(null);
+  const contentRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -81,37 +103,91 @@ export default function HomePage() {
     }
 
     const mainElement = mainRef.current;
+    const contentElement = contentRef.current;
+    let sectionOffsets = [];
+    let scrollFrame = 0;
+    let measureFrame = 0;
 
     const updateActiveSection = () => {
-      const sections = Array.from(mainElement.querySelectorAll("[data-section]"));
       const scrollTop = mainElement.scrollTop;
+      let nextSection = DEFAULT_ACTIVE_SECTION;
 
-      if (scrollTop < 72) {
-        setActiveSection("#about");
+      for (let index = 0; index < sectionOffsets.length; index += 1) {
+        if (sectionOffsets[index].top > scrollTop) {
+          break;
+        }
+
+        nextSection = sectionOffsets[index].href;
+      }
+
+      setActiveSection((currentSection) =>
+        currentSection === nextSection ? currentSection : nextSection,
+      );
+    };
+
+    const measureSections = () => {
+      measureFrame = 0;
+      sectionOffsets = Array.from(mainElement.querySelectorAll("[data-section]"))
+        .map((section) => {
+          const id = section.getAttribute("data-section");
+
+          if (!id) {
+            return null;
+          }
+
+          return {
+            href: `#${id}`,
+            top: Math.max(section.offsetTop - DESKTOP_SECTION_OFFSET, 0),
+          };
+        })
+        .filter(Boolean);
+
+      updateActiveSection();
+    };
+
+    const queueScrollUpdate = () => {
+      if (scrollFrame) {
         return;
       }
 
-      let currentSection = "#about";
-
-      sections.forEach((section) => {
-        const id = section.getAttribute("data-section");
-        if (!id) {
-          return;
-        }
-
-        if (section.offsetTop - 128 <= scrollTop) {
-          currentSection = `#${id}`;
-        }
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = 0;
+        updateActiveSection();
       });
-
-      setActiveSection(currentSection);
     };
 
-    updateActiveSection();
-    mainElement.addEventListener("scroll", updateActiveSection, { passive: true });
+    const queueSectionMeasure = () => {
+      if (measureFrame) {
+        return;
+      }
+
+      measureFrame = window.requestAnimationFrame(() => {
+        measureSections();
+      });
+    };
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && contentElement
+        ? new ResizeObserver(queueSectionMeasure)
+        : null;
+
+    queueSectionMeasure();
+    mainElement.addEventListener("scroll", queueScrollUpdate, { passive: true });
+    window.addEventListener("resize", queueSectionMeasure);
+    resizeObserver?.observe(contentElement);
 
     return () => {
-      mainElement.removeEventListener("scroll", updateActiveSection);
+      if (scrollFrame) {
+        window.cancelAnimationFrame(scrollFrame);
+      }
+
+      if (measureFrame) {
+        window.cancelAnimationFrame(measureFrame);
+      }
+
+      resizeObserver?.disconnect();
+      mainElement.removeEventListener("scroll", queueScrollUpdate);
+      window.removeEventListener("resize", queueSectionMeasure);
     };
   }, [isDesktop]);
 
@@ -150,7 +226,7 @@ export default function HomePage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      setActiveSection("#about");
+      setActiveSection(DEFAULT_ACTIVE_SECTION);
       window.history.replaceState(null, "", "#");
       return;
     }
@@ -168,10 +244,12 @@ export default function HomePage() {
         target.getBoundingClientRect().top -
         container.getBoundingClientRect().top +
         container.scrollTop -
-        28;
+        DESKTOP_NAVIGATION_OFFSET;
 
       container.scrollTo({ top, behavior: "smooth" });
-      setActiveSection(href);
+      setActiveSection((currentSection) =>
+        currentSection === href ? currentSection : href,
+      );
       window.history.replaceState(null, "", href);
       return;
     }
@@ -181,26 +259,11 @@ export default function HomePage() {
       return;
     }
 
-    const offset = 88;
-    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+    const top =
+      target.getBoundingClientRect().top + window.scrollY - MOBILE_NAVIGATION_OFFSET;
     window.scrollTo({ top, behavior: "smooth" });
     window.history.replaceState(null, "", href);
   };
-
-  const introText = aboutText.split("\n\n")[0];
-
-  const desktopSections = (
-    <>
-      <AboutSection text={aboutText} />
-      <ExperienceSection items={experiences} />
-      <ProjectsSection items={projects} />
-      <EducationSection items={educationItems} />
-      <SkillsSection items={skills} />
-      <GitHubSection config={githubActivity} />
-    </>
-  );
-
-  const mobileSections = desktopSections;
 
   if (isDesktop) {
     return (
@@ -222,9 +285,11 @@ export default function HomePage() {
               className="no-scrollbar h-full overflow-y-auto py-20 pr-1 lg:pl-12 xl:pl-20 xl:pr-2"
               onWheel={handleDesktopMainWheel}
             >
-              <div className="w-full max-w-[840px] space-y-14 pb-12 lg:ml-auto">
-                {desktopSections}
-                <Footer resumeSource={resumeSource} />
+              <div
+                ref={contentRef}
+                className="w-full max-w-[840px] space-y-14 pb-12 lg:ml-auto"
+              >
+                <PortfolioContent />
               </div>
             </main>
           </div>
@@ -282,14 +347,10 @@ export default function HomePage() {
           </section>
 
           <div className="mt-9 space-y-14">
-            {mobileSections}
-            <Footer resumeSource={resumeSource} />
+            <PortfolioContent />
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-
-

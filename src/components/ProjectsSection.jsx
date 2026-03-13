@@ -1,4 +1,4 @@
-import { Icon } from "./Icons";
+﻿import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
 
 function ProjectPreview({ imageAlt, imageSrc }) {
@@ -24,9 +24,9 @@ export default function ProjectsSection({ items }) {
         {items.map((project) => (
           <article
             key={project.title}
-            className="group relative flex h-full w-full flex-col overflow-hidden rounded-[28px] border border-[rgba(121,232,255,0.1)] bg-[linear-gradient(180deg,rgba(7,13,24,0.62),rgba(4,9,19,0.34))] shadow-[0_18px_60px_rgba(3,8,18,0.16)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(131,255,195,0.2)] hover:shadow-[0_24px_70px_rgba(3,8,18,0.22)]"
+            className="group relative flex h-full w-full flex-col overflow-hidden rounded-[28px] border border-[rgba(101,168,124,0.14)] bg-[linear-gradient(180deg,rgba(8,20,13,0.88),rgba(5,11,8,0.76))] shadow-[0_20px_60px_rgba(6,18,10,0.24)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(131,197,153,0.22)] hover:shadow-[0_28px_76px_rgba(9,24,14,0.32)]"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(121,232,255,0),rgba(121,232,255,0.45),rgba(121,232,255,0))]" />
+            <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(131,255,195,0),rgba(131,255,195,0.28),rgba(131,255,195,0))]" />
 
             <div className="relative border-b border-[rgba(121,232,255,0.08)] px-5 pb-4 pt-4">
               <div className="flex items-start justify-between gap-4">
@@ -76,5 +76,7 @@ export default function ProjectsSection({ items }) {
     </section>
   );
 }
+
+
 
 

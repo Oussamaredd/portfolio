@@ -15,7 +15,7 @@ export const profile = {
   name: "Oussama Radouane",
   role: "Senior Software Engineer",
   location: "Asnieres-sur-Seine, France",
-  imageSrc: "/profile-images/oussama-portrait.png",
+  imageSrc: "/profile-images/oussama-portrait.jpg",
   imageAlt: "Portrait of Oussama Radouane at a desk with a laptop, code editor, and frontend development references.",
   imageLabel: "OR",
   contactLinks: [

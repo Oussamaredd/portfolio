@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { fetchGitHubContributions, formatContributionTooltip } from "../lib/githubContributions";
 import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
@@ -7,8 +7,10 @@ const LEARN_MORE_URL =
   "https://docs.github.com/en/account-and-profile/concepts/contributions-visible-on-your-profile";
 const HEATMAP_PALETTE = ["rgba(5, 16, 13, 0.88)", "rgba(0, 95, 62, 0.56)", "#008c5c", "#00c97f", "#00f5a0"];
 const VISIBLE_WEEKS = 43;
+const contributionCache = new Map();
 
 const normalizeColor = (color) => (typeof color === "string" ? color.trim().toLowerCase() : "");
+const getCacheKey = (username, year) => `${username}:${year ?? "latest"}`;
 
 const buildMonthColumns = (months, weeks) =>
   months
@@ -97,12 +99,11 @@ const getContributionLevel = (contributionCount, maxContributionCount) => {
   return 1;
 };
 
-const getContributionColor = (day, sourceColors, maxContributionCount) => {
+const getContributionColor = (day, normalizedSourceColors, maxContributionCount) => {
   if (!day?.contributionCount) {
     return HEATMAP_PALETTE[0];
   }
 
-  const normalizedSourceColors = (sourceColors ?? []).map((color) => normalizeColor(color));
   const colorIndex = normalizedSourceColors.indexOf(normalizeColor(day?.color));
 
   if (colorIndex > 0) {
@@ -127,6 +128,19 @@ function HeatmapLegend() {
         ))}
       </div>
       <span>More</span>
+    </div>
+  );
+}
+
+function IdleBoard() {
+  return (
+    <div className="github-graph-shell border border-white/[0.08] px-4 py-5 sm:px-5">
+      <p className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--color-text-primary)]">
+        GitHub contribution calendar
+      </p>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
+        This section loads as you get close to it so the first screen stays lighter and more responsive.
+      </p>
     </div>
   );
 }
@@ -214,6 +228,7 @@ function ContributionBoard({ data, profileUrl, selectedYear, onSelectYear, usern
   const displayedWeeks = data.weeks.slice(Math.max(data.weeks.length - VISIBLE_WEEKS, 0));
   const monthColumns = buildMonthColumns(data.months, displayedWeeks);
   const maxContributionCount = getMaxContributionCount(displayedWeeks);
+  const normalizedSourceColors = (data.colors ?? []).map((color) => normalizeColor(color));
   const scrollViewportRef = useRef(null);
 
   useEffect(() => {
@@ -281,7 +296,11 @@ function ContributionBoard({ data, profileUrl, selectedYear, onSelectYear, usern
                         aria-label={tooltip}
                         className="github-graph-cell"
                         style={{
-                          backgroundColor: getContributionColor(day, data.colors, maxContributionCount),
+                          backgroundColor: getContributionColor(
+                            day,
+                            normalizedSourceColors,
+                            maxContributionCount,
+                          ),
                         }}
                         title={tooltip}
                       />
@@ -316,9 +335,11 @@ function ContributionBoard({ data, profileUrl, selectedYear, onSelectYear, usern
 }
 
 export default function GitHubSection({ config }) {
+  const sectionRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const [selectedYear, setSelectedYear] = useState(() => config?.defaultYear ?? new Date().getFullYear());
   const [calendarState, setCalendarState] = useState({
-    status: "loading",
+    status: "idle",
     data: null,
     error: null,
   });
@@ -331,6 +352,42 @@ export default function GitHubSection({ config }) {
   }, [config?.defaultYear, username]);
 
   useEffect(() => {
+    if (shouldLoad) {
+      return undefined;
+    }
+
+    const sectionElement = sectionRef.current;
+    if (!sectionElement) {
+      return undefined;
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldLoad(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "420px 0px" },
+    );
+
+    observer.observe(sectionElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    if (!shouldLoad) {
+      return undefined;
+    }
+
     if (!username) {
       setCalendarState({
         status: "error",
@@ -340,13 +397,30 @@ export default function GitHubSection({ config }) {
       return undefined;
     }
 
+    const cacheKey = getCacheKey(username, selectedYear);
+    const cachedData = contributionCache.get(cacheKey);
+
+    if (cachedData) {
+      setCalendarState({
+        status: "ready",
+        data: cachedData,
+        error: null,
+      });
+
+      if (cachedData.selectedYear && cachedData.selectedYear !== selectedYear) {
+        setSelectedYear(cachedData.selectedYear);
+      }
+
+      return undefined;
+    }
+
     const controller = new AbortController();
 
-    setCalendarState({
-      status: "loading",
-      data: null,
+    setCalendarState((currentState) => ({
+      status: currentState.data ? "ready" : "loading",
+      data: currentState.data,
       error: null,
-    });
+    }));
 
     fetchGitHubContributions({
       username,
@@ -354,6 +428,12 @@ export default function GitHubSection({ config }) {
       signal: controller.signal,
     })
       .then((data) => {
+        contributionCache.set(cacheKey, data);
+
+        if (data.selectedYear && data.selectedYear !== selectedYear) {
+          contributionCache.set(getCacheKey(username, data.selectedYear), data);
+        }
+
         setCalendarState({
           status: "ready",
           data,
@@ -379,12 +459,13 @@ export default function GitHubSection({ config }) {
     return () => {
       controller.abort();
     };
-  }, [selectedYear, username]);
+  }, [selectedYear, shouldLoad, username]);
 
   return (
-    <section className="scroll-mt-24" data-section="github">
+    <section ref={sectionRef} className="scroll-mt-24" data-section="github">
       <SectionHeading id="github" title="GitHub Activity" />
       <div className="section-shell max-w-[64rem] px-4 py-3.5 sm:px-5">
+        {calendarState.status === "idle" ? <IdleBoard /> : null}
         {calendarState.status === "loading" ? <LoadingBoard /> : null}
         {calendarState.status === "error" ? <ErrorBoard message={calendarState.error} /> : null}
         {calendarState.status === "ready" ? (
@@ -400,4 +481,3 @@ export default function GitHubSection({ config }) {
     </section>
   );
 }
-

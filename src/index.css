@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap");
+﻿@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -113,6 +113,7 @@ p {
     background: transparent;
     box-shadow: none;
   }
+
   .experience-card {
     --experience-card-radius: 0.5rem;
 
@@ -139,14 +140,14 @@ p {
   }
 
   .experience-card__surface {
-    background: linear-gradient(180deg, rgba(141, 255, 193, 0.2), rgba(72, 184, 110, 0.1));
+    background: linear-gradient(180deg, rgba(66, 111, 82, 0.18), rgba(20, 43, 29, 0.12));
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     opacity: 0;
   }
 
   .experience-card__border {
-    border: 1px solid rgba(131, 255, 195, 0.14);
+    border: 1px solid rgba(101, 168, 124, 0.14);
     opacity: 0;
   }
 
@@ -181,7 +182,7 @@ p {
   }
 
   .experience-card__icon {
-    border-color: rgba(131, 255, 195, 0.12);
+    border-color: rgba(101, 168, 124, 0.14);
     background: transparent;
     color: var(--color-accent);
   }
@@ -191,14 +192,14 @@ p {
   .group:hover .experience-card,
   .group:focus-visible .experience-card {
     transform: translateY(-2px);
-    box-shadow: 0 18px 40px rgba(34, 86, 52, 0.18);
+    box-shadow: 0 18px 40px rgba(12, 30, 19, 0.28);
   }
 
   .experience-card:hover .experience-card__surface,
   .experience-card:focus-within .experience-card__surface,
   .group:hover .experience-card__surface,
   .group:focus-visible .experience-card__surface {
-    background: linear-gradient(180deg, rgba(141, 255, 193, 0.2), rgba(72, 184, 110, 0.1));
+    background: linear-gradient(180deg, rgba(84, 138, 104, 0.2), rgba(28, 56, 38, 0.14));
     opacity: 1;
   }
 
@@ -206,7 +207,7 @@ p {
   .experience-card:focus-within .experience-card__border,
   .group:hover .experience-card__border,
   .group:focus-visible .experience-card__border {
-    border-color: rgba(131, 255, 195, 0.34);
+    border-color: rgba(131, 197, 153, 0.28);
     opacity: 1;
   }
 
@@ -214,9 +215,10 @@ p {
   .experience-card:focus-within .experience-card__icon,
   .group:hover .experience-card__icon,
   .group:focus-visible .experience-card__icon {
-    border-color: rgba(131, 255, 195, 0.3);
-    background: rgba(131, 255, 195, 0.08);
+    border-color: rgba(131, 197, 153, 0.24);
+    background: rgba(75, 126, 93, 0.12);
   }
+
   .section-copy {
     color: var(--color-text-secondary);
     font-size: 0.95rem;
@@ -475,6 +477,19 @@ p {
   }
 }
 
+@media (hover: none), (pointer: coarse) {
+  .experience-card__surface {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .github-graph-cell:hover {
+    transform: none;
+    filter: none;
+    border-color: rgba(255, 255, 255, 0.03);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -489,11 +504,4 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
-
-
-
-
-
-
-
 
