@@ -135,6 +135,7 @@ export default function HomePage() {
             return null;
           }
 
+          
           return {
             href: `#${id}`,
             top: Math.max(section.offsetTop - DESKTOP_SECTION_OFFSET, 0),
