@@ -20,7 +20,7 @@ export default function ProjectsSection({ items, title, isActive }) {
   return (
     <section className="scroll-mt-24" data-section="projects">
       <SectionHeading id="projects" isActive={isActive} title={title} />
-      <div className="grid w-full max-w-[840px] grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="grid w-full max-w-[960px] grid-cols-1 gap-4 xl:grid-cols-2">
         {items.map((project) => (
           <article
             key={project.title}

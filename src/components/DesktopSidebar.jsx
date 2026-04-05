@@ -14,7 +14,7 @@ const DesktopSidebar = forwardRef(function DesktopSidebar(
   return (
     <header
       ref={ref}
-      className="no-scrollbar flex h-full flex-col justify-between overflow-y-auto py-20 lg:pl-10 xl:pl-14"
+      className="no-scrollbar flex h-full flex-col justify-between overflow-y-auto py-20 lg:pl-8 xl:pl-10"
       onWheel={onWheel}
     >
       <div>
@@ -22,10 +22,10 @@ const DesktopSidebar = forwardRef(function DesktopSidebar(
           <ProfileAvatar className="h-20 w-20" profile={profile} />
 
           <div>
-            <h1 className="mt-4 max-w-none whitespace-nowrap text-[2.85rem] font-semibold leading-[0.94] tracking-[-0.055em] text-[var(--color-text-primary)] xl:text-[3.15rem]">
+            <h1 className="mt-4 max-w-none text-[2.6rem] font-semibold leading-[0.94] tracking-[-0.055em] text-[var(--color-text-primary)] xl:text-[2.95rem]">
               {profile.name}
             </h1>
-            <p className="mt-3 max-w-[24rem] text-[1.02rem] leading-6 text-[var(--color-primary)]">
+            <p className="mt-3 max-w-[22rem] text-[1rem] leading-6 text-[var(--color-primary)]">
               {profile.role}
             </p>
             <StatusBadge className="mt-3">{profile.status}</StatusBadge>

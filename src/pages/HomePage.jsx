@@ -4,7 +4,6 @@ import CyberBackground from "../components/CyberBackground";
 import DesktopSidebar from "../components/DesktopSidebar";
 import EducationSection from "../components/EducationSection";
 import ExperienceSection from "../components/ExperienceSection";
-import Footer from "../components/Footer";
 import GitHubSection from "../components/GitHubSection";
 import { Icon } from "../components/Icons";
 import LocaleSwitch from "../components/LocaleSwitch";
@@ -82,9 +81,9 @@ const PortfolioContent = memo(function PortfolioContent({ content, locale }) {
         title={content.sectionTitles.education}
       />
       <SkillsSection
-        eyebrow={content.ui.skillsEyebrow}
         isActive={content.activeSection === "#skills"}
         items={content.skills}
+        locale={locale}
         title={content.sectionTitles.skills}
       />
       <GitHubSection
@@ -94,7 +93,6 @@ const PortfolioContent = memo(function PortfolioContent({ content, locale }) {
         locale={locale}
         title={content.sectionTitles.github}
       />
-      <Footer content={content.ui.footer} resumeSource={content.resumeSource} />
     </>
   );
 });
@@ -367,8 +365,8 @@ export default function HomePage({ content, locale }) {
     return (
       <div className="h-screen overflow-hidden bg-[var(--color-background)]" id="home">
         <CyberBackground />
-        <div className="relative z-10 mx-auto h-full max-w-[1640px] px-5 lg:px-8 xl:px-10">
-          <div className="grid h-full gap-16 lg:grid-cols-[minmax(460px,560px)_minmax(0,1fr)] xl:gap-24">
+        <div className="relative z-10 mx-auto h-full max-w-[1680px] px-5 lg:px-8 xl:px-10">
+          <div className="grid h-full gap-12 lg:grid-cols-[minmax(390px,470px)_minmax(0,1fr)] xl:grid-cols-[minmax(410px,500px)_minmax(0,1fr)] xl:gap-16">
             <DesktopSidebar
               ref={sidebarRef}
               activeSection={activeSection}
@@ -381,12 +379,12 @@ export default function HomePage({ content, locale }) {
 
             <main
               ref={mainRef}
-              className="no-scrollbar h-full overflow-y-auto py-20 pr-1 lg:pl-12 xl:pl-20 xl:pr-2"
+              className="no-scrollbar h-full overflow-y-auto py-20 pr-1 lg:pl-8 xl:pl-12 xl:pr-1"
               onWheel={handleDesktopMainWheel}
             >
               <div
                 ref={contentRef}
-                className="w-full max-w-[840px] space-y-14 pb-12 lg:ml-auto"
+                className="w-full max-w-[960px] space-y-14 pb-12 lg:ml-auto"
               >
                 <PortfolioContent
                   content={{ ...content, activeSection }}

@@ -75,7 +75,7 @@ const portfolioContentByLocale = {
     resumeSource: "/CV_EN_Oussama_Radouane_Full_Time.pdf",
     navItems: [
       { label: "Home", href: "#home", icon: "home" },
-      { label: "About", href: "#about", icon: "about" },
+      { label: "Summary", href: "#about", icon: "about" },
       { label: "Experience", href: "#experience", icon: "experience" },
       { label: "Projects", href: "#projects", icon: "projects" },
       { label: "Education", href: "#education", icon: "education" },
@@ -83,7 +83,7 @@ const portfolioContentByLocale = {
       { label: "GitHub", href: "#github", icon: "github" },
     ],
     sectionTitles: {
-      about: "About",
+      about: "Summary",
       experience: "Professional Experience",
       projects: "Projects",
       education: "Education",
@@ -296,7 +296,7 @@ const portfolioContentByLocale = {
     resumeSource: "/CV_FR_Oussama_Radouane_CDI.pdf",
     navItems: [
       { label: "Accueil", href: "#home", icon: "home" },
-      { label: "À propos", href: "#about", icon: "about" },
+      { label: "Resumé", href: "#about", icon: "about" },
       { label: "Expérience", href: "#experience", icon: "experience" },
       { label: "Projets", href: "#projects", icon: "projects" },
       { label: "Formation", href: "#education", icon: "education" },
@@ -304,7 +304,7 @@ const portfolioContentByLocale = {
       { label: "GitHub", href: "#github", icon: "github" },
     ],
     sectionTitles: {
-      about: "À propos",
+      about: "Resumé",
       experience: "Expérience professionnelle",
       projects: "Projets",
       education: "Formation",

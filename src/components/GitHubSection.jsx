@@ -260,26 +260,26 @@ function ContributionBoard({ data, labels, locale, onSelectYear, profileUrl, sel
 
   return (
     <div className="github-graph-shell">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="max-w-[34rem] text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] sm:text-[1.7rem]">
-          {data.summary}
-        </p>
-
-        {profileUrl ? (
-          <a
-            className="github-profile-link"
-            href={profileUrl}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <Icon name="github" className="h-[1.05rem] w-[1.05rem]" />
-            <span>@{username}</span>
-          </a>
-        ) : null}
-      </div>
+      <p className="max-w-[34rem] text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] sm:text-[1.7rem]">
+        {data.summary}
+      </p>
 
       <div ref={scrollViewportRef} className="github-scrollport mt-6 overflow-x-auto pb-3">
-        <div className="inline-grid min-w-max gap-y-3">
+        <div className="inline-grid min-w-max gap-y-4">
+          {profileUrl ? (
+            <div className="flex justify-end">
+              <a
+                className="github-profile-link"
+                href={profileUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <Icon name="github" className="h-[1.05rem] w-[1.05rem]" />
+                <span>@{username}</span>
+              </a>
+            </div>
+          ) : null}
+
           <div
             className="github-graph-months text-[0.94rem] text-[var(--color-text-secondary)]"
             style={{ gridTemplateColumns: `repeat(${Math.max(displayedWeeks.length, 1)}, var(--github-cell-size))` }}
@@ -321,17 +321,17 @@ function ContributionBoard({ data, labels, locale, onSelectYear, profileUrl, sel
               );
             })}
           </div>
-        </div>
-      </div>
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <YearSelector
-          ariaLabel={labels.yearSelectorAriaLabel}
-          years={data.contributionYears}
-          selectedYear={selectedYear}
-          onSelectYear={onSelectYear}
-        />
-        <HeatmapLegend labels={labels} />
+          <div className="mt-1 flex items-center justify-between gap-8">
+            <YearSelector
+              ariaLabel={labels.yearSelectorAriaLabel}
+              years={data.contributionYears}
+              selectedYear={selectedYear}
+              onSelectYear={onSelectYear}
+            />
+            <HeatmapLegend labels={labels} />
+          </div>
+        </div>
       </div>
 
       <a
