@@ -16,10 +16,10 @@ function getSchoolDetails(item) {
   };
 }
 
-export default function EducationSection({ items, title, isActive }) {
+export default function EducationSection({ items, title }) {
   return (
     <section className="scroll-mt-24" data-section="education">
-      <SectionHeading id="education" isActive={isActive} title={title} />
+      <SectionHeading id="education" title={title} />
       <div className="max-w-none space-y-4">
         {items.map((item) => {
           const { school, location } = getSchoolDetails(item);

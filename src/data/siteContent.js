@@ -72,7 +72,6 @@ const portfolioContentByLocale = {
       description:
         "Portfolio of Oussama Radouane, a software engineer focused on backend systems, DevOps, Laravel, Node.js, cloud infrastructure, and automation.",
     },
-    resumeSource: "/CV_EN_Oussama_Radouane_Full_Time.pdf",
     navItems: [
       { label: "Home", href: "#home", icon: "home" },
       { label: "Summary", href: "#about", icon: "about" },
@@ -263,13 +262,6 @@ const portfolioContentByLocale = {
     githubActivity: sharedGitHubActivity,
     ui: {
       mobileEyebrow: "Portfolio",
-      skillsEyebrow: "Core toolkit",
-      footer: {
-        eyebrow: "Portfolio",
-        description: "Designed and developed with React and Tailwind CSS.",
-        signature: "Built with motion, detail, and intent",
-        resumeSourceLabel: "Resume source",
-      },
       github: {
         idleTitle: "GitHub contribution calendar",
         idleDescription:
@@ -293,7 +285,6 @@ const portfolioContentByLocale = {
       description:
         "Portfolio d'Oussama Radouane, ingénieur logiciel orienté backend, DevOps, Laravel, Node.js, infrastructure cloud et automatisation.",
     },
-    resumeSource: "/CV_FR_Oussama_Radouane_CDI.pdf",
     navItems: [
       { label: "Accueil", href: "#home", icon: "home" },
       { label: "Resumé", href: "#about", icon: "about" },
@@ -484,13 +475,6 @@ const portfolioContentByLocale = {
     githubActivity: sharedGitHubActivity,
     ui: {
       mobileEyebrow: "Portfolio",
-      skillsEyebrow: "Compétences clés",
-      footer: {
-        eyebrow: "Portfolio",
-        description: "Conçu et développé avec React et Tailwind CSS.",
-        signature: "Construit avec intention, détail et mouvement",
-        resumeSourceLabel: "Source du CV",
-      },
       github: {
         idleTitle: "Calendrier de contributions GitHub",
         idleDescription:

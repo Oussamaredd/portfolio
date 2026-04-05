@@ -7,6 +7,7 @@ function ProjectPreview({ imageAlt, imageSrc }) {
       <img
         alt={imageAlt}
         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        decoding="async"
         loading="lazy"
         src={imageSrc}
       />
@@ -16,10 +17,10 @@ function ProjectPreview({ imageAlt, imageSrc }) {
   );
 }
 
-export default function ProjectsSection({ items, title, isActive }) {
+export default function ProjectsSection({ items, title }) {
   return (
     <section className="scroll-mt-24" data-section="projects">
-      <SectionHeading id="projects" isActive={isActive} title={title} />
+      <SectionHeading id="projects" title={title} />
       <div className="grid w-full max-w-[960px] grid-cols-1 gap-4 xl:grid-cols-2">
         {items.map((project) => (
           <article

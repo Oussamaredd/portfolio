@@ -346,7 +346,7 @@ function ContributionBoard({ data, labels, locale, onSelectYear, profileUrl, sel
   );
 }
 
-export default function GitHubSection({ config, labels, locale, title, isActive }) {
+export default function GitHubSection({ config, labels, locale, title }) {
   const sectionRef = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
   const [selectedYear, setSelectedYear] = useState(() => config?.defaultYear ?? new Date().getFullYear());
@@ -476,7 +476,7 @@ export default function GitHubSection({ config, labels, locale, title, isActive 
 
   return (
     <section ref={sectionRef} className="scroll-mt-24" data-section="github">
-      <SectionHeading id="github" isActive={isActive} title={title} />
+      <SectionHeading id="github" title={title} />
       <div className="section-shell max-w-[64rem] px-4 py-3.5 sm:px-5">
         {calendarState.status === "idle" ? <IdleBoard labels={labels} /> : null}
         {calendarState.status === "loading" ? <LoadingBoard /> : null}

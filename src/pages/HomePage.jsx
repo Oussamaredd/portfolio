@@ -2,9 +2,9 @@ import { memo, useEffect, useRef, useState } from "react";
 import AboutSection from "../components/AboutSection";
 import CyberBackground from "../components/CyberBackground";
 import DesktopSidebar from "../components/DesktopSidebar";
+import DeferredGitHubSection from "../components/DeferredGitHubSection";
 import EducationSection from "../components/EducationSection";
 import ExperienceSection from "../components/ExperienceSection";
-import GitHubSection from "../components/GitHubSection";
 import { Icon } from "../components/Icons";
 import LocaleSwitch from "../components/LocaleSwitch";
 import MobileNav from "../components/MobileNav";
@@ -61,34 +61,27 @@ const PortfolioContent = memo(function PortfolioContent({ content, locale }) {
   return (
     <>
       <AboutSection
-        isActive={content.activeSection === "#about"}
         text={content.aboutText}
         title={content.sectionTitles.about}
       />
       <ExperienceSection
-        isActive={content.activeSection === "#experience"}
         items={content.experiences}
         title={content.sectionTitles.experience}
       />
       <ProjectsSection
-        isActive={content.activeSection === "#projects"}
         items={content.projects}
         title={content.sectionTitles.projects}
       />
       <EducationSection
-        isActive={content.activeSection === "#education"}
         items={content.educationItems}
         title={content.sectionTitles.education}
       />
       <SkillsSection
-        isActive={content.activeSection === "#skills"}
         items={content.skills}
-        locale={locale}
         title={content.sectionTitles.skills}
       />
-      <GitHubSection
+      <DeferredGitHubSection
         config={content.githubActivity}
-        isActive={content.activeSection === "#github"}
         labels={content.ui.github}
         locale={locale}
         title={content.sectionTitles.github}
@@ -386,10 +379,7 @@ export default function HomePage({ content, locale }) {
                 ref={contentRef}
                 className="w-full max-w-[960px] space-y-14 pb-12 lg:ml-auto"
               >
-                <PortfolioContent
-                  content={{ ...content, activeSection }}
-                  locale={locale}
-                />
+                <PortfolioContent content={content} locale={locale} />
               </div>
             </main>
           </div>
@@ -448,10 +438,7 @@ export default function HomePage({ content, locale }) {
           </section>
 
           <div className="mt-9 space-y-14">
-            <PortfolioContent
-              content={{ ...content, activeSection }}
-              locale={locale}
-            />
+            <PortfolioContent content={content} locale={locale} />
           </div>
         </div>
       </div>

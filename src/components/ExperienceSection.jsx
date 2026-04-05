@@ -1,10 +1,10 @@
 import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
 
-export default function ExperienceSection({ items, title, isActive }) {
+export default function ExperienceSection({ items, title }) {
   return (
     <section className="scroll-mt-24" data-section="experience">
-      <SectionHeading id="experience" isActive={isActive} title={title} />
+      <SectionHeading id="experience" title={title} />
       <div className="space-y-4">
         {items.map((item) => {
           const card = (
