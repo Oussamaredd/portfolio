@@ -14,9 +14,15 @@
     <meta name="theme-color" content="#07110a" />
     <meta
       name="description"
-      content="A modern portfolio website built with React and Tailwind CSS."
+      content="Portfolio of Oussama Radouane, a software engineer focused on backend systems, DevOps, and cloud infrastructure."
     />
-    <title>Portfolio Website</title>
+    <title>Oussama Radouane | Software Engineer</title>
+    <script>
+      (() => {
+        const locale = /^\/fr(?:\/|$)/i.test(window.location.pathname) ? "fr" : "en";
+        document.documentElement.lang = locale;
+      })();
+    </script>
   </head>
   <body class="dark">
     <div id="root"></div>

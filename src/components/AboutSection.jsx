@@ -1,11 +1,11 @@
 import SectionHeading from "./SectionHeading";
 
-export default function AboutSection({ text }) {
+export default function AboutSection({ text, title, isActive }) {
   const paragraphs = text.split("\n\n");
 
   return (
     <section className="scroll-mt-24" data-section="about">
-      <SectionHeading id="about" title="About" />
+      <SectionHeading id="about" isActive={isActive} title={title} />
       <div className="section-shell max-w-[46rem] px-4 py-3.5 sm:px-5">
         <div className="space-y-2.5">
           {paragraphs.map((paragraph, index) => (
@@ -25,4 +25,3 @@ export default function AboutSection({ text }) {
     </section>
   );
 }
-

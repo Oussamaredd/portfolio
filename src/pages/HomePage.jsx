@@ -1,4 +1,4 @@
-﻿import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import AboutSection from "../components/AboutSection";
 import CyberBackground from "../components/CyberBackground";
 import DesktopSidebar from "../components/DesktopSidebar";
@@ -7,22 +7,12 @@ import ExperienceSection from "../components/ExperienceSection";
 import Footer from "../components/Footer";
 import GitHubSection from "../components/GitHubSection";
 import { Icon } from "../components/Icons";
+import LocaleSwitch from "../components/LocaleSwitch";
 import MobileNav from "../components/MobileNav";
 import ProfileAvatar from "../components/ProfileAvatar";
 import ProjectsSection from "../components/ProjectsSection";
 import SkillsSection from "../components/SkillsSection";
 import StatusBadge from "../components/StatusBadge";
-import {
-  aboutText,
-  educationItems,
-  experiences,
-  githubActivity,
-  navItems,
-  profile,
-  projects,
-  resumeSource,
-  skills,
-} from "../data/siteContent";
 
 const DEFAULT_ACTIVE_SECTION = "#about";
 const DESKTOP_SECTION_OFFSET = 128;
@@ -52,23 +42,64 @@ const applyScrollDelta = (element, deltaY) => {
   return deltaY - consumed;
 };
 
-const introText = aboutText.split("\n\n")[0];
+const getSectionOffsets = (sections, topOffset = 0) =>
+  sections
+    .map((section) => {
+      const id = section.getAttribute("data-section");
 
-const PortfolioContent = memo(function PortfolioContent() {
+      if (!id) {
+        return null;
+      }
+
+      return {
+        href: `#${id}`,
+        top: Math.max(topOffset(section), 0),
+      };
+    })
+    .filter(Boolean);
+
+const PortfolioContent = memo(function PortfolioContent({ content, locale }) {
   return (
     <>
-      <AboutSection text={aboutText} />
-      <ExperienceSection items={experiences} />
-      <ProjectsSection items={projects} />
-      <EducationSection items={educationItems} />
-      <SkillsSection items={skills} />
-      <GitHubSection config={githubActivity} />
-      <Footer resumeSource={resumeSource} />
+      <AboutSection
+        isActive={content.activeSection === "#about"}
+        text={content.aboutText}
+        title={content.sectionTitles.about}
+      />
+      <ExperienceSection
+        isActive={content.activeSection === "#experience"}
+        items={content.experiences}
+        title={content.sectionTitles.experience}
+      />
+      <ProjectsSection
+        isActive={content.activeSection === "#projects"}
+        items={content.projects}
+        title={content.sectionTitles.projects}
+      />
+      <EducationSection
+        isActive={content.activeSection === "#education"}
+        items={content.educationItems}
+        title={content.sectionTitles.education}
+      />
+      <SkillsSection
+        eyebrow={content.ui.skillsEyebrow}
+        isActive={content.activeSection === "#skills"}
+        items={content.skills}
+        title={content.sectionTitles.skills}
+      />
+      <GitHubSection
+        config={content.githubActivity}
+        isActive={content.activeSection === "#github"}
+        labels={content.ui.github}
+        locale={locale}
+        title={content.sectionTitles.github}
+      />
+      <Footer content={content.ui.footer} resumeSource={content.resumeSource} />
     </>
   );
 });
 
-export default function HomePage() {
+export default function HomePage({ content, locale }) {
   const [isDesktop, setIsDesktop] = useState(() =>
     typeof window !== "undefined"
       ? window.matchMedia("(min-width: 1024px)").matches
@@ -78,6 +109,7 @@ export default function HomePage() {
   const mainRef = useRef(null);
   const sidebarRef = useRef(null);
   const contentRef = useRef(null);
+  const introText = content.aboutText.split("\n\n")[0];
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -127,20 +159,10 @@ export default function HomePage() {
 
     const measureSections = () => {
       measureFrame = 0;
-      sectionOffsets = Array.from(mainElement.querySelectorAll("[data-section]"))
-        .map((section) => {
-          const id = section.getAttribute("data-section");
-
-          if (!id) {
-            return null;
-          }
-
-          return {
-            href: `#${id}`,
-            top: Math.max(section.offsetTop - DESKTOP_SECTION_OFFSET, 0),
-          };
-        })
-        .filter(Boolean);
+      sectionOffsets = getSectionOffsets(
+        Array.from(mainElement.querySelectorAll("[data-section]")),
+        (section) => section.offsetTop - DESKTOP_SECTION_OFFSET,
+      );
 
       updateActiveSection();
     };
@@ -187,6 +209,82 @@ export default function HomePage() {
 
       resizeObserver?.disconnect();
       mainElement.removeEventListener("scroll", queueScrollUpdate);
+      window.removeEventListener("resize", queueSectionMeasure);
+    };
+  }, [isDesktop]);
+
+  useEffect(() => {
+    if (isDesktop || typeof window === "undefined") {
+      return undefined;
+    }
+
+    let sectionOffsets = [];
+    let scrollFrame = 0;
+    let measureFrame = 0;
+
+    const updateActiveSection = () => {
+      const scrollTop = window.scrollY;
+      let nextSection = DEFAULT_ACTIVE_SECTION;
+
+      for (let index = 0; index < sectionOffsets.length; index += 1) {
+        if (sectionOffsets[index].top > scrollTop) {
+          break;
+        }
+
+        nextSection = sectionOffsets[index].href;
+      }
+
+      setActiveSection((currentSection) =>
+        currentSection === nextSection ? currentSection : nextSection,
+      );
+    };
+
+    const measureSections = () => {
+      measureFrame = 0;
+      sectionOffsets = getSectionOffsets(
+        Array.from(document.querySelectorAll("[data-section]")),
+        (section) =>
+          section.getBoundingClientRect().top + window.scrollY - MOBILE_NAVIGATION_OFFSET,
+      );
+
+      updateActiveSection();
+    };
+
+    const queueScrollUpdate = () => {
+      if (scrollFrame) {
+        return;
+      }
+
+      scrollFrame = window.requestAnimationFrame(() => {
+        scrollFrame = 0;
+        updateActiveSection();
+      });
+    };
+
+    const queueSectionMeasure = () => {
+      if (measureFrame) {
+        return;
+      }
+
+      measureFrame = window.requestAnimationFrame(() => {
+        measureSections();
+      });
+    };
+
+    queueSectionMeasure();
+    window.addEventListener("scroll", queueScrollUpdate, { passive: true });
+    window.addEventListener("resize", queueSectionMeasure);
+
+    return () => {
+      if (scrollFrame) {
+        window.cancelAnimationFrame(scrollFrame);
+      }
+
+      if (measureFrame) {
+        window.cancelAnimationFrame(measureFrame);
+      }
+
+      window.removeEventListener("scroll", queueScrollUpdate);
       window.removeEventListener("resize", queueSectionMeasure);
     };
   }, [isDesktop]);
@@ -274,10 +372,11 @@ export default function HomePage() {
             <DesktopSidebar
               ref={sidebarRef}
               activeSection={activeSection}
-              navItems={navItems}
+              locale={locale}
+              navItems={content.navItems}
               onNavigate={handleNavigate}
               onWheel={handleDesktopSidebarWheel}
-              profile={profile}
+              profile={content.profile}
             />
 
             <main
@@ -289,7 +388,10 @@ export default function HomePage() {
                 ref={contentRef}
                 className="w-full max-w-[840px] space-y-14 pb-12 lg:ml-auto"
               >
-                <PortfolioContent />
+                <PortfolioContent
+                  content={{ ...content, activeSection }}
+                  locale={locale}
+                />
               </div>
             </main>
           </div>
@@ -302,27 +404,27 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--color-background)]" id="home">
       <CyberBackground />
       <div className="relative z-10 flex w-full flex-col lg:hidden">
-        <MobileNav navItems={navItems} onNavigate={handleNavigate} />
+        <MobileNav navItems={content.navItems} onNavigate={handleNavigate} />
 
         <div className="mx-auto flex w-full max-w-5xl flex-col pl-5 pr-3 pb-10 pt-24 sm:pl-8 sm:pr-5">
           <section className="pt-4">
             <div className="flex flex-col gap-5">
               <div className="flex items-start gap-4">
-                <ProfileAvatar className="h-20 w-20 shrink-0" profile={profile} />
+                <ProfileAvatar className="h-20 w-20 shrink-0" profile={content.profile} />
               </div>
 
               <div>
-                <p className="eyebrow mb-3">Portfolio</p>
+                <p className="eyebrow mb-3">{content.ui.mobileEyebrow}</p>
                 <h1 className="max-w-xl break-words text-3xl font-semibold leading-[0.94] tracking-[-0.05em] text-[var(--color-text-primary)] sm:text-[2.75rem]">
-                  {profile.name}
+                  {content.profile.name}
                 </h1>
                 <p className="mt-3 text-base leading-7 text-[var(--color-primary)] sm:text-[1.05rem]">
-                  {profile.role}
+                  {content.profile.role}
                 </p>
-                <StatusBadge className="mt-3">{profile.status}</StatusBadge>
+                <StatusBadge className="mt-3">{content.profile.status}</StatusBadge>
                 <div className="mt-4 flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                   <Icon className="h-4 w-4 text-[var(--color-accent)]" name="location" />
-                  <span>{profile.location}</span>
+                  <span>{content.profile.location}</span>
                 </div>
                 <p className="mt-4 max-w-2xl text-[0.95rem] leading-7 text-[var(--color-text-secondary)] sm:text-base">
                   {introText}
@@ -330,7 +432,7 @@ export default function HomePage() {
               </div>
 
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {profile.contactLinks.map((link) => (
+                {content.profile.contactLinks.map((link) => (
                   <a
                     key={link.label}
                     className="mobile-contact-link"
@@ -343,11 +445,15 @@ export default function HomePage() {
                   </a>
                 ))}
               </div>
+              <LocaleSwitch className="pt-1" locale={locale} />
             </div>
           </section>
 
           <div className="mt-9 space-y-14">
-            <PortfolioContent />
+            <PortfolioContent
+              content={{ ...content, activeSection }}
+              locale={locale}
+            />
           </div>
         </div>
       </div>

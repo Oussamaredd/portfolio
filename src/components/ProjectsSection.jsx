@@ -1,9 +1,9 @@
-﻿import { Icon } from "./Icons";
+import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
 
 function ProjectPreview({ imageAlt, imageSrc }) {
   return (
-    <div className="relative aspect-[16/10] overflow-hidden rounded-[24px] border border-[rgba(121,232,255,0.12)] bg-[rgba(4,10,19,0.86)]">
+    <div className="relative aspect-[16/10] overflow-hidden rounded-[0.5rem] border border-[rgba(121,232,255,0.12)] bg-[rgba(4,10,19,0.86)]">
       <img
         alt={imageAlt}
         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -16,15 +16,15 @@ function ProjectPreview({ imageAlt, imageSrc }) {
   );
 }
 
-export default function ProjectsSection({ items }) {
+export default function ProjectsSection({ items, title, isActive }) {
   return (
     <section className="scroll-mt-24" data-section="projects">
-      <SectionHeading count={items.length} id="projects" title="Projects" />
+      <SectionHeading id="projects" isActive={isActive} title={title} />
       <div className="grid w-full max-w-[840px] grid-cols-1 gap-4 xl:grid-cols-2">
         {items.map((project) => (
           <article
             key={project.title}
-            className="group relative flex h-full w-full flex-col overflow-hidden rounded-[28px] border border-[rgba(101,168,124,0.14)] bg-[linear-gradient(180deg,rgba(8,20,13,0.88),rgba(5,11,8,0.76))] shadow-[0_20px_60px_rgba(6,18,10,0.24)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(131,197,153,0.22)] hover:shadow-[0_28px_76px_rgba(9,24,14,0.32)]"
+            className="group relative flex h-full w-full flex-col overflow-hidden rounded-[0.5rem] border border-[rgba(101,168,124,0.14)] bg-[linear-gradient(180deg,rgba(8,20,13,0.88),rgba(5,11,8,0.76))] shadow-[0_20px_60px_rgba(6,18,10,0.24)] transition-all duration-300 hover:-translate-y-1 hover:border-[rgba(131,197,153,0.22)] hover:shadow-[0_28px_76px_rgba(9,24,14,0.32)]"
           >
             <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(131,255,195,0),rgba(131,255,195,0.28),rgba(131,255,195,0))]" />
 
@@ -33,7 +33,7 @@ export default function ProjectsSection({ items }) {
                 <h3 className="text-[1.22rem] font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] sm:text-[1.36rem]">
                   {project.title}
                 </h3>
-                <div className="flex items-center gap-2 rounded-full border border-[rgba(121,232,255,0.14)] bg-white/[0.06] px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                <div className="flex items-center gap-2 rounded-[0.5rem] border border-[rgba(121,232,255,0.14)] bg-white/[0.06] px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
                   <span className={`h-2 w-2 rounded-full ${project.statusColor}`} />
                   {project.status}
                 </div>
@@ -59,7 +59,7 @@ export default function ProjectsSection({ items }) {
                 {project.links.map((link) => (
                   <a
                     key={link.label}
-                    className="inline-flex items-center gap-2 rounded-full border border-[rgba(121,232,255,0.14)] bg-[rgba(255,255,255,0.03)] px-3.5 py-2 text-[0.88rem] font-medium text-[var(--color-text-primary)] transition-all duration-200 hover:border-[rgba(131,255,195,0.26)] hover:bg-[rgba(255,255,255,0.06)]"
+                    className="inline-flex items-center gap-2 rounded-[0.5rem] border border-[rgba(121,232,255,0.14)] bg-[rgba(255,255,255,0.03)] px-3.5 py-2 text-[0.88rem] font-medium text-[var(--color-text-primary)] transition-all duration-200 hover:border-[rgba(131,255,195,0.26)] hover:bg-[rgba(255,255,255,0.06)]"
                     href={link.href}
                     rel="noopener noreferrer"
                     target="_blank"
@@ -76,7 +76,3 @@ export default function ProjectsSection({ items }) {
     </section>
   );
 }
-
-
-
-

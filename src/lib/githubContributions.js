@@ -1,12 +1,7 @@
-const numberFormatter = new Intl.NumberFormat("en");
-const dateFormatter = new Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
+const getIntlLocale = (locale = "en") => (locale === "fr" ? "fr-FR" : "en-US");
 
-export async function fetchGitHubContributions({ username, year, signal }) {
-  const query = new URLSearchParams({ username });
+export async function fetchGitHubContributions({ locale = "en", signal, username, year }) {
+  const query = new URLSearchParams({ username, lang: locale });
 
   if (year) {
     query.set("year", String(year));
@@ -26,14 +21,28 @@ export async function fetchGitHubContributions({ username, year, signal }) {
   return payload;
 }
 
-export function formatContributionTooltip(day) {
+export function formatContributionTooltip(day, locale = "en") {
+  const intlLocale = getIntlLocale(locale);
+  const numberFormatter = new Intl.NumberFormat(intlLocale);
+  const dateFormatter = new Intl.DateTimeFormat(intlLocale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
   const contributionCount = numberFormatter.format(day?.contributionCount ?? 0);
-  const contributionLabel = `${contributionCount} contribution${day?.contributionCount === 1 ? "" : "s"}`;
+  const contributionLabel =
+    locale === "fr"
+      ? `${contributionCount} contribution${day?.contributionCount === 1 ? "" : "s"}`
+      : `${contributionCount} contribution${day?.contributionCount === 1 ? "" : "s"}`;
   const parsedDate = day?.date ? new Date(day.date) : null;
-  const formattedDate = parsedDate && !Number.isNaN(parsedDate.getTime())
-    ? dateFormatter.format(parsedDate)
-    : "Unknown date";
+  const formattedDate =
+    parsedDate && !Number.isNaN(parsedDate.getTime())
+      ? dateFormatter.format(parsedDate)
+      : locale === "fr"
+        ? "date inconnue"
+        : "Unknown date";
 
-  return `${contributionLabel} on ${formattedDate}`;
+  return locale === "fr"
+    ? `${contributionLabel} le ${formattedDate}`
+    : `${contributionLabel} on ${formattedDate}`;
 }
-

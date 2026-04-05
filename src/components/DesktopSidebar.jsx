@@ -1,15 +1,14 @@
 import { forwardRef } from "react";
 import { Icon } from "./Icons";
+import LocaleSwitch from "./LocaleSwitch";
 import ProfileAvatar from "./ProfileAvatar";
 import StatusBadge from "./StatusBadge";
 
-const socialOrder = ["GitHub", "LinkedIn", "Portfolio", "Email", "Resume"];
-
 const orderedLinks = (links) =>
-  [...links].sort((left, right) => socialOrder.indexOf(left.label) - socialOrder.indexOf(right.label));
+  [...links].sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
 
 const DesktopSidebar = forwardRef(function DesktopSidebar(
-  { activeSection, navItems, onNavigate, onWheel, profile },
+  { activeSection, locale, navItems, onNavigate, onWheel, profile },
   ref,
 ) {
   return (
@@ -80,26 +79,26 @@ const DesktopSidebar = forwardRef(function DesktopSidebar(
         </nav>
       </div>
 
-      <ul aria-label="Social media" className="mt-12 flex items-center gap-5 pb-4">
-        {orderedLinks(profile.contactLinks).map((link) => (
-          <li key={link.label}>
-            <a
-              aria-label={link.label}
-              className="social-icon-link text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-              href={link.href}
-              rel={link.href.startsWith("#") ? undefined : "noreferrer"}
-              target={link.href.startsWith("#") ? undefined : "_blank"}
-            >
-              <Icon className="h-7 w-7" name={link.icon} />
-            </a>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-12 pb-4">
+        <ul aria-label="Social media" className="flex items-center gap-5">
+          {orderedLinks(profile.contactLinks).map((link) => (
+            <li key={link.label}>
+              <a
+                aria-label={link.label}
+                className="social-icon-link text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                href={link.href}
+                rel={link.href.startsWith("#") ? undefined : "noreferrer"}
+                target={link.href.startsWith("#") ? undefined : "_blank"}
+              >
+                <Icon className="h-7 w-7" name={link.icon} />
+              </a>
+            </li>
+          ))}
+        </ul>
+        <LocaleSwitch className="mt-5" locale={locale} />
+      </div>
     </header>
   );
 });
 
 export default DesktopSidebar;
-
-
-

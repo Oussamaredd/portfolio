@@ -225,6 +225,35 @@ p {
     line-height: 1.72;
   }
 
+  .section-heading__title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 0.38rem;
+    cursor: default;
+    transition: color 180ms ease;
+  }
+
+  .section-heading__title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0, 245, 160, 0.5), rgba(0, 245, 160, 0));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms ease;
+  }
+
+  .section-heading__title:hover::after {
+    transform: scaleX(1);
+  }
+
+  .section-heading__title:hover {
+    color: var(--color-accent);
+  }
+
   .skill-pill {
     border-radius: 9999px;
     border: 1px solid rgba(121, 232, 255, 0.18);
@@ -247,7 +276,7 @@ p {
   }
 
   .project-chip {
-    border-radius: 9999px;
+    border-radius: 0.5rem;
     border: 1px solid rgba(121, 232, 255, 0.14);
     background: rgba(255, 255, 255, 0.03);
     padding: 0.35rem 0.65rem;
@@ -296,6 +325,55 @@ p {
     transform: none;
     border-color: transparent;
     background: transparent;
+    color: var(--color-accent);
+  }
+
+  .locale-switch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .locale-switch__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+
+  .locale-switch__link {
+    position: relative;
+    color: var(--color-text-secondary);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: color 180ms ease;
+  }
+
+  .locale-switch__link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.22rem;
+    height: 1px;
+    background: rgba(0, 245, 160, 0.35);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms ease;
+  }
+
+  .locale-switch__link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .locale-switch__link:hover::after,
+  .locale-switch__link--active::after {
+    transform: scaleX(1);
+  }
+
+  .locale-switch__link--active {
     color: var(--color-accent);
   }
 

@@ -1,10 +1,10 @@
-﻿import { Icon } from "./Icons";
+import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
 
-export default function ExperienceSection({ items }) {
+export default function ExperienceSection({ items, title, isActive }) {
   return (
     <section className="scroll-mt-24" data-section="experience">
-      <SectionHeading id="experience" title="Experience" />
+      <SectionHeading id="experience" isActive={isActive} title={title} />
       <div className="space-y-4">
         {items.map((item) => {
           const card = (
@@ -29,12 +29,16 @@ export default function ExperienceSection({ items }) {
                   <h3 className="experience-card__title text-[1.2rem] font-semibold tracking-[-0.03em] sm:text-[1.34rem]">
                     {item.title}
                   </h3>
-                  <p className="experience-card__company text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-                    {item.company}
-                  </p>
+                  {item.company ? (
+                    <p className="experience-card__company text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+                      {item.company}
+                    </p>
+                  ) : null}
                 </div>
 
-                <p className="experience-card__summary section-copy mt-4 max-w-none">{item.summary}</p>
+                <p className="experience-card__summary section-copy mt-4 max-w-none">
+                  {item.summary}
+                </p>
               </div>
             </article>
           );
@@ -42,7 +46,7 @@ export default function ExperienceSection({ items }) {
           if (item.href) {
             return (
               <a
-                key={`${item.title}-${item.company}`}
+                key={`${item.title}-${item.company ?? item.period}`}
                 className="group block max-w-none rounded-[1.25rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(131,197,153,0.2)] focus-visible:ring-offset-0"
                 href={item.href}
                 rel="noopener noreferrer"
@@ -54,7 +58,7 @@ export default function ExperienceSection({ items }) {
           }
 
           return (
-            <div key={`${item.title}-${item.company}`} className="max-w-none">
+            <div key={`${item.title}-${item.company ?? item.period}`} className="max-w-none">
               {card}
             </div>
           );
@@ -63,6 +67,3 @@ export default function ExperienceSection({ items }) {
     </section>
   );
 }
-
-
-

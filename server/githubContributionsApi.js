@@ -9,7 +9,11 @@ const CACHE_HEADERS = {
 const NO_STORE_HEADERS = {
   "cache-control": "no-store",
 };
-const numberFormatter = new Intl.NumberFormat("en");
+const normalizeLocale = (rawLocale) =>
+  String(rawLocale ?? "").toLowerCase().startsWith("fr") ? "fr" : "en";
+
+const getIntlLocale = (locale) => (normalizeLocale(locale) === "fr" ? "fr-FR" : "en-US");
+const createNumberFormatter = (locale) => new Intl.NumberFormat(getIntlLocale(locale));
 
 const CONTRIBUTIONS_QUERY = `
   query PortfolioContributionCalendar($login: String!, $from: DateTime!, $to: DateTime!) {
@@ -99,17 +103,24 @@ const buildContributionWindow = (selectedYear, now = new Date()) => {
   };
 };
 
-const formatSummary = (totalContributions, selectedYear, isRollingWindow) => {
-  const contributionLabel = `${numberFormatter.format(totalContributions)} contribution${
+const formatSummary = (totalContributions, selectedYear, isRollingWindow, locale) => {
+  const normalizedLocale = normalizeLocale(locale);
+  const contributionLabel = `${createNumberFormatter(normalizedLocale).format(totalContributions)} contribution${
     totalContributions === 1 ? "" : "s"
   }`;
+
+  if (normalizedLocale === "fr") {
+    return isRollingWindow
+      ? `${contributionLabel} au cours des 12 derniers mois`
+      : `${contributionLabel} en ${selectedYear}`;
+  }
 
   return isRollingWindow
     ? `${contributionLabel} in the last year`
     : `${contributionLabel} in ${selectedYear}`;
 };
 
-const normalizeCalendar = (collection, selectedYear, isRollingWindow) => {
+const normalizeCalendar = (collection, selectedYear, isRollingWindow, locale) => {
   const calendar = collection?.contributionCalendar;
   const totalContributions = calendar?.totalContributions ?? 0;
   const contributionYears = Array.from(new Set([selectedYear, ...(collection?.contributionYears ?? [])])).sort(
@@ -119,7 +130,7 @@ const normalizeCalendar = (collection, selectedYear, isRollingWindow) => {
   return {
     selectedYear,
     isRollingWindow,
-    summary: formatSummary(totalContributions, selectedYear, isRollingWindow),
+    summary: formatSummary(totalContributions, selectedYear, isRollingWindow, locale),
     totalContributions,
     colors:
       Array.isArray(calendar?.colors) && calendar.colors.length > 0 ? calendar.colors : DEFAULT_LEGEND_COLORS,
@@ -140,7 +151,13 @@ const normalizeCalendar = (collection, selectedYear, isRollingWindow) => {
   };
 };
 
-export async function requestGitHubContributionCalendar({ username, selectedYear, token, now = new Date() }) {
+export async function requestGitHubContributionCalendar({
+  username,
+  selectedYear,
+  token,
+  locale = "en",
+  now = new Date(),
+}) {
   const normalizedToken = token?.trim();
 
   if (!normalizedToken) {
@@ -178,7 +195,12 @@ export async function requestGitHubContributionCalendar({ username, selectedYear
     throw createError(`GitHub user \"${username}\" was not found.`, 404);
   }
 
-  return normalizeCalendar(user.contributionsCollection, selectedYear, contributionWindow.isRollingWindow);
+  return normalizeCalendar(
+    user.contributionsCollection,
+    selectedYear,
+    contributionWindow.isRollingWindow,
+    locale,
+  );
 }
 
 export async function handleGitHubContributionsRequest(
@@ -212,6 +234,7 @@ export async function handleGitHubContributionsRequest(
   }
 
   const selectedYear = parseRequestedYear(requestUrl.searchParams.get("year"), now.getUTCFullYear());
+  const locale = normalizeLocale(requestUrl.searchParams.get("lang"));
 
   try {
     const contributionCalendar = await requestGitHubContributionCalendar({
@@ -219,6 +242,7 @@ export async function handleGitHubContributionsRequest(
       selectedYear,
       token,
       now,
+      locale,
     });
 
     return createJsonResponse(

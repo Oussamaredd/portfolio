@@ -1,18 +1,31 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchGitHubContributions, formatContributionTooltip } from "../lib/githubContributions";
 import { Icon } from "./Icons";
 import SectionHeading from "./SectionHeading";
 
-const LEARN_MORE_URL =
-  "https://docs.github.com/en/account-and-profile/concepts/contributions-visible-on-your-profile";
 const HEATMAP_PALETTE = ["rgba(5, 16, 13, 0.88)", "rgba(0, 95, 62, 0.56)", "#008c5c", "#00c97f", "#00f5a0"];
 const VISIBLE_WEEKS = 43;
 const contributionCache = new Map();
 
 const normalizeColor = (color) => (typeof color === "string" ? color.trim().toLowerCase() : "");
-const getCacheKey = (username, year) => `${username}:${year ?? "latest"}`;
+const getCacheKey = (username, year, locale) => `${username}:${year ?? "latest"}:${locale}`;
+const getIntlLocale = (locale) => (locale === "fr" ? "fr-FR" : "en-US");
 
-const buildMonthColumns = (months, weeks) =>
+const getMonthLabel = (firstDay, locale) => {
+  if (!firstDay) {
+    return "";
+  }
+
+  const parsedDate = new Date(`${firstDay}T00:00:00Z`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(getIntlLocale(locale), { month: "short" }).format(parsedDate);
+};
+
+const buildMonthColumns = (months, weeks, locale) =>
   months
     .map((month) => {
       const column = weeks.findIndex((week) =>
@@ -25,7 +38,7 @@ const buildMonthColumns = (months, weeks) =>
 
       return {
         key: `${month.firstDay}-${month.name}`,
-        label: month.name.slice(0, 3),
+        label: getMonthLabel(month.firstDay, locale),
         column,
       };
     })
@@ -113,10 +126,10 @@ const getContributionColor = (day, normalizedSourceColors, maxContributionCount)
   return HEATMAP_PALETTE[getContributionLevel(day.contributionCount, maxContributionCount)];
 };
 
-function HeatmapLegend() {
+function HeatmapLegend({ labels }) {
   return (
     <div className="flex items-center gap-2 text-[0.92rem] text-[var(--color-text-secondary)]">
-      <span>Less</span>
+      <span>{labels.legendLess}</span>
       <div className="flex items-center gap-[var(--github-cell-gap)]">
         {HEATMAP_PALETTE.map((color, index) => (
           <span
@@ -127,19 +140,19 @@ function HeatmapLegend() {
           />
         ))}
       </div>
-      <span>More</span>
+      <span>{labels.legendMore}</span>
     </div>
   );
 }
 
-function IdleBoard() {
+function IdleBoard({ labels }) {
   return (
     <div className="github-graph-shell border border-white/[0.08] px-4 py-5 sm:px-5">
       <p className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--color-text-primary)]">
-        GitHub contribution calendar
+        {labels.idleTitle}
       </p>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
-        This section loads as you get close to it so the first screen stays lighter and more responsive.
+        {labels.idleDescription}
       </p>
     </div>
   );
@@ -184,27 +197,25 @@ function LoadingBoard() {
   );
 }
 
-function ErrorBoard({ message }) {
+function ErrorBoard({ labels, message }) {
   return (
     <div className="github-graph-shell border border-white/[0.08] px-4 py-5 sm:px-5">
       <p className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--color-text-primary)]">
-        GitHub contribution calendar unavailable
+        {labels.errorTitle}
       </p>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">{message}</p>
-      <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)]">
-        Add a `GITHUB_TOKEN` environment variable for the API endpoint and reload the section.
-      </p>
+      <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)]">{labels.errorHelp}</p>
     </div>
   );
 }
 
-function YearSelector({ years, selectedYear, onSelectYear }) {
+function YearSelector({ ariaLabel, onSelectYear, selectedYear, years }) {
   if (!Array.isArray(years) || years.length < 2) {
     return null;
   }
 
   return (
-    <div className="github-year-strip" aria-label="Contribution years">
+    <div className="github-year-strip" aria-label={ariaLabel}>
       {years.map((year) => {
         const isActive = year === selectedYear;
 
@@ -224,9 +235,9 @@ function YearSelector({ years, selectedYear, onSelectYear }) {
   );
 }
 
-function ContributionBoard({ data, profileUrl, selectedYear, onSelectYear, username }) {
+function ContributionBoard({ data, labels, locale, onSelectYear, profileUrl, selectedYear, username }) {
   const displayedWeeks = data.weeks.slice(Math.max(data.weeks.length - VISIBLE_WEEKS, 0));
-  const monthColumns = buildMonthColumns(data.months, displayedWeeks);
+  const monthColumns = buildMonthColumns(data.months, displayedWeeks, locale);
   const maxContributionCount = getMaxContributionCount(displayedWeeks);
   const normalizedSourceColors = (data.colors ?? []).map((color) => normalizeColor(color));
   const scrollViewportRef = useRef(null);
@@ -287,7 +298,7 @@ function ContributionBoard({ data, profileUrl, selectedYear, onSelectYear, usern
               return (
                 <div key={week.firstDay} className="github-graph-week">
                   {days.map((day) => {
-                    const tooltip = formatContributionTooltip(day);
+                    const tooltip = formatContributionTooltip(day, locale);
 
                     return (
                       <div
@@ -315,26 +326,27 @@ function ContributionBoard({ data, profileUrl, selectedYear, onSelectYear, usern
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <YearSelector
+          ariaLabel={labels.yearSelectorAriaLabel}
           years={data.contributionYears}
           selectedYear={selectedYear}
           onSelectYear={onSelectYear}
         />
-        <HeatmapLegend />
+        <HeatmapLegend labels={labels} />
       </div>
 
       <a
         className="mt-4 inline-flex text-[0.9rem] text-[var(--color-text-secondary)] transition-colors duration-200 hover:text-[var(--color-accent)]"
-        href={LEARN_MORE_URL}
+        href={labels.learnMoreUrl}
         rel="noopener noreferrer"
         target="_blank"
       >
-        Learn how GitHub counts contributions
+        {labels.learnMoreLabel}
       </a>
     </div>
   );
 }
 
-export default function GitHubSection({ config }) {
+export default function GitHubSection({ config, labels, locale, title, isActive }) {
   const sectionRef = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
   const [selectedYear, setSelectedYear] = useState(() => config?.defaultYear ?? new Date().getFullYear());
@@ -392,12 +404,12 @@ export default function GitHubSection({ config }) {
       setCalendarState({
         status: "error",
         data: null,
-        error: "Missing GitHub username.",
+        error: labels.missingUsernameError,
       });
       return undefined;
     }
 
-    const cacheKey = getCacheKey(username, selectedYear);
+    const cacheKey = getCacheKey(username, selectedYear, locale);
     const cachedData = contributionCache.get(cacheKey);
 
     if (cachedData) {
@@ -426,12 +438,13 @@ export default function GitHubSection({ config }) {
       username,
       year: selectedYear,
       signal: controller.signal,
+      locale,
     })
       .then((data) => {
         contributionCache.set(cacheKey, data);
 
         if (data.selectedYear && data.selectedYear !== selectedYear) {
-          contributionCache.set(getCacheKey(username, data.selectedYear), data);
+          contributionCache.set(getCacheKey(username, data.selectedYear, locale), data);
         }
 
         setCalendarState({
@@ -459,18 +472,22 @@ export default function GitHubSection({ config }) {
     return () => {
       controller.abort();
     };
-  }, [selectedYear, shouldLoad, username]);
+  }, [labels.missingUsernameError, locale, selectedYear, shouldLoad, username]);
 
   return (
     <section ref={sectionRef} className="scroll-mt-24" data-section="github">
-      <SectionHeading id="github" title="GitHub Activity" />
+      <SectionHeading id="github" isActive={isActive} title={title} />
       <div className="section-shell max-w-[64rem] px-4 py-3.5 sm:px-5">
-        {calendarState.status === "idle" ? <IdleBoard /> : null}
+        {calendarState.status === "idle" ? <IdleBoard labels={labels} /> : null}
         {calendarState.status === "loading" ? <LoadingBoard /> : null}
-        {calendarState.status === "error" ? <ErrorBoard message={calendarState.error} /> : null}
+        {calendarState.status === "error" ? (
+          <ErrorBoard labels={labels} message={calendarState.error} />
+        ) : null}
         {calendarState.status === "ready" ? (
           <ContributionBoard
             data={calendarState.data}
+            labels={labels}
+            locale={locale}
             profileUrl={profileUrl}
             selectedYear={selectedYear}
             onSelectYear={setSelectedYear}
