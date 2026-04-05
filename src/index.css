@@ -232,13 +232,14 @@ p {
   .section-heading__title {
     position: relative;
     display: inline-block;
-    padding-bottom: 0.38rem;
+    padding-bottom: 0.42rem;
     cursor: default;
     transition: color 180ms ease;
   }
 
   .section-heading__line {
-    background: linear-gradient(90deg, rgba(121, 232, 255, 0.38), rgba(121, 232, 255, 0));
+    background: linear-gradient(90deg, rgba(121, 232, 255, 0.52), rgba(121, 232, 255, 0));
+    transition: background 180ms ease;
   }
 
   .section-heading__title::after {
@@ -247,19 +248,30 @@ p {
     left: 0;
     right: 0;
     bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(0, 245, 160, 0.5), rgba(0, 245, 160, 0));
-    transform: scaleX(0);
+    height: 2px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, rgba(0, 245, 160, 0.72), rgba(0, 245, 160, 0.1));
+    box-shadow: 0 0 12px rgba(0, 245, 160, 0.12);
+    transform: scaleX(0.32);
     transform-origin: left;
-    transition: transform 180ms ease;
+    transition:
+      transform 180ms ease,
+      background 180ms ease,
+      box-shadow 180ms ease;
   }
 
   .section-heading:hover .section-heading__title::after {
     transform: scaleX(1);
+    background: linear-gradient(90deg, rgba(0, 245, 160, 0.95), rgba(0, 245, 160, 0.22));
+    box-shadow: 0 0 16px rgba(0, 245, 160, 0.18);
   }
 
   .section-heading:hover .section-heading__title {
     color: var(--color-accent);
+  }
+
+  .section-heading:hover .section-heading__line {
+    background: linear-gradient(90deg, rgba(121, 232, 255, 0.72), rgba(121, 232, 255, 0));
   }
 
   .skill-pill {

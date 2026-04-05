@@ -2,7 +2,6 @@ import { forwardRef } from "react";
 import { Icon } from "./Icons";
 import LocaleSwitch from "./LocaleSwitch";
 import ProfileAvatar from "./ProfileAvatar";
-import StatusBadge from "./StatusBadge";
 
 const orderedLinks = (links) =>
   [...links].sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
@@ -18,25 +17,28 @@ const DesktopSidebar = forwardRef(function DesktopSidebar(
       onWheel={onWheel}
     >
       <div>
-        <div className="space-y-4">
-          <ProfileAvatar className="h-20 w-20" profile={profile} />
+        <div className="flex flex-col items-center text-center">
+          <ProfileAvatar className="h-32 w-32" profile={profile} />
 
-          <div>
-            <h1 className="mt-4 max-w-none text-[2.6rem] font-semibold leading-[0.94] tracking-[-0.055em] text-[var(--color-text-primary)] xl:text-[2.95rem]">
+          <div className="mt-5 flex flex-col items-center">
+            <h1 className="whitespace-nowrap text-[1.56rem] font-semibold uppercase leading-[1] tracking-[-0.03em] text-[var(--color-text-primary)] xl:text-[1.74rem]">
               {profile.name}
             </h1>
-            <p className="mt-3 max-w-[22rem] text-[1rem] leading-6 text-[var(--color-primary)]">
+            <p className="mt-3 max-w-[18rem] text-[0.96rem] font-medium uppercase leading-[1.35] tracking-[0.08em] text-[var(--color-text-primary)] xl:max-w-[20rem] xl:text-[1.02rem]">
               {profile.role}
             </p>
-            <StatusBadge className="mt-3">{profile.status}</StatusBadge>
-            <div className="mt-4 flex items-center gap-2.5 text-sm text-[var(--color-text-secondary)]">
+            <div className="mt-4 flex items-center justify-center gap-2.5 text-[0.96rem] text-[var(--color-text-secondary)]">
+              <span className="h-3 w-3 rounded-full bg-[var(--color-accent)] shadow-[0_0_0_6px_rgba(131,255,195,0.08)]" />
+              <span>{profile.status}</span>
+            </div>
+            <div className="mt-4 flex items-center justify-center gap-2.5 text-[0.96rem] text-[var(--color-text-secondary)]">
               <Icon className="h-4 w-4 text-[var(--color-accent)]" name="location" />
               <span>{profile.location}</span>
             </div>
           </div>
         </div>
 
-        <nav aria-label="In-page jump links" className="mt-12">
+        <nav aria-label="In-page jump links" className="mt-14">
           <ul className="space-y-4">
             {navItems
               .filter((item) => item.href !== "#home")

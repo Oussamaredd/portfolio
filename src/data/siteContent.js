@@ -93,7 +93,7 @@ const portfolioContentByLocale = {
     profile: {
       status: "Available from July 2026",
       name: "Oussama Radouane",
-      role: "Software Engineer",
+      role: "Senior Software Engineer",
       location: "Asnières-sur-Seine, France",
       imageSrc: "/profile-images/oussama-portrait.jpg",
       imageAlt: "Portrait of Oussama Radouane at a desk with a laptop, code editor, and frontend development references.",
@@ -314,7 +314,7 @@ const portfolioContentByLocale = {
     profile: {
       status: "Disponible à partir de juillet 2026",
       name: "Oussama Radouane",
-      role: "Ingénieur logiciel",
+      role: "Ingénieur logiciel senior",
       location: "Asnières-sur-Seine, France",
       imageSrc: "/profile-images/oussama-portrait.jpg",
       imageAlt: "Portrait d'Oussama Radouane devant un ordinateur portable avec un environnement de travail de développement.",
