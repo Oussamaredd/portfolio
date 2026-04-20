@@ -125,7 +125,7 @@ const portfolioContentByLocale = {
         {
           label: "Resume",
           icon: "resume",
-          href: "/CV_EN_Oussama_Radouane_Full_Time.pdf",
+          href: "/CV_Oussama_Radouane_EN.pdf",
           order: 50,
         },
       ],
@@ -338,7 +338,7 @@ const portfolioContentByLocale = {
         {
           label: "CV",
           icon: "resume",
-          href: "/CV_FR_Oussama_Radouane_CDI.pdf",
+          href: "/CV_Oussama_Radouane_CDI.pdf",
           order: 50,
         },
       ],
